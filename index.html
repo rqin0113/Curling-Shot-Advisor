@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Curling Shot Advisor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Curling Shot Advisor</h1>
+
+    <div class="arena-container">
+        <canvas id="rink" width="600" height="1200"></canvas>
+    </div>
+
+    <div class="controls">
+        <h2>Place Stones</h2>
+        <p>Click on the rink to place stones. Blue = you, Red = opponent.</p>
+        <button id="recommendBtn">Get Recommendation</button>
+        <h3 id="result"></h3>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('rink');
+        const ctx = canvas.getContext('2d');
+
+        let rocks = []; // {x, y, color, hammer}
+        const stoneRadius = 14; // bigger stones
+
+        const rinkWidth = canvas.width;
+        const rinkHeight = canvas.height;
+
+        // House at top
+        const houseX = rinkWidth / 2;
+        const houseY = 150;
+
+        function drawRink() {
+            // Ice background
+            ctx.fillStyle = "#e0f7fa";
+            ctx.fillRect(0, 0, rinkWidth, rinkHeight);
+
+            // House (big)
+            const houseColors = ["red", "white", "blue"];
+            const houseRadii = [100, 70, 40]; // much larger
+
+            for (let i = 0; i < houseColors.length; i++) {
+                ctx.beginPath();
+                ctx.arc(houseX, houseY, houseRadii[i], 0, 2*Math.PI);
+                ctx.fillStyle = houseColors[i];
+                ctx.fill();
+            }
+
+            // Hog lines
+            const hogLineY1 = houseY + 300;
+            const hogLineY2 = rinkHeight - 300;
+            ctx.strokeStyle = "#ff6600";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(50, hogLineY1);
+            ctx.lineTo(rinkWidth - 50, hogLineY1);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(50, hogLineY2);
+            ctx.lineTo(rinkWidth - 50, hogLineY2);
+            ctx.stroke();
+
+            // Center line
+            ctx.strokeStyle = "#cccccc";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(houseX, 0);
+            ctx.lineTo(houseX, rinkHeight);
+            ctx.stroke();
+
+            // Side boundaries
+            ctx.strokeStyle = "#004d99";
+            ctx.lineWidth = 4;
+            ctx.strokeRect(50, 0, rinkWidth - 100, rinkHeight);
+        }
+
+        function drawRocks() {
+            rocks.forEach(r => {
+                ctx.beginPath();
+                ctx.arc(r.x, r.y, stoneRadius, 0, 2*Math.PI);
+                ctx.fillStyle = r.color;
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "#333";
+                ctx.stroke();
+            });
+        }
+
+        function redraw() {
+            drawRink();
+            drawRocks();
+        }
+
+        redraw();
+
+        // Function to check if new stone overlaps existing ones
+        function isOverlapping(x, y) {
+            return rocks.some(r => {
+                const dx = r.x - x;
+                const dy = r.y - y;
+                const distance = Math.sqrt(dx*dx + dy*dy);
+                return distance < stoneRadius * 2 + 2; // buffer
+            });
+        }
+
+        // Place stone on click
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            if (isOverlapping(x, y)) {
+                alert("Cannot place stone here, overlaps another!");
+                return;
+            }
+
+            const color = prompt("Stone color? (blue = you, red = opponent)") === "red" ? "red" : "blue";
+            rocks.push({x, y, color, hammer: color==="blue"});
+            redraw();
+        });
+
+        // Recommend shot
+        document.getElementById('recommendBtn').addEventListener('click', async () => {
+    // Prepare data for backend
+    const stonesData = rocks.map(r => ({
+        x: r.x,
+        y: r.y,
+        color: r.color
+    }));
+
+    const response = await fetch('http://127.0.0.1:8000/recommend-shot', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            stones: stonesData
+        })
+    });
+
+    const data = await response.json();
+
+    // Place recommended green stone
+    rocks.push({x: data.x, y: data.y, color: "green"});
+    redraw();
+
+    // Show only the recommendation type
+    document.getElementById('result').innerText = `Recommended Shot: ${data.recommended_shot}`;
+});
+    </script>
+</body>
+</html>
