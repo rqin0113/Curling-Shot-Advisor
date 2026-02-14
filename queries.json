@@ -1,0 +1,101 @@
+[
+    {
+        "end": 6,
+        "score_diff": -1,
+        "hammer": true,
+        "shot": "Draw or Guard",
+        "reason": "Late end, close game with hammer",
+        "x": 200,
+        "y": 350
+    },
+    {
+        "end": 6,
+        "score_diff": -1,
+        "hammer": true,
+        "shot": "Draw or Guard",
+        "reason": "Late end, close game with hammer",
+        "x": 200,
+        "y": 350
+    },
+    {
+        "end": 1,
+        "score_diff": 0,
+        "hammer": false,
+        "shot": "Takeout",
+        "reason": "Early end, no hammer \u2013 play aggressively",
+        "x": 200,
+        "y": 850
+    },
+    {
+        "end": 1,
+        "score_diff": 0,
+        "hammer": false,
+        "shot": "Takeout",
+        "reason": "Early end, no hammer \u2013 play aggressively",
+        "x": 200,
+        "y": 850
+    },
+    {
+        "end": 1,
+        "score_diff": 0,
+        "hammer": false,
+        "shot": "Takeout",
+        "reason": "Early end, no hammer \u2013 play aggressively",
+        "x": 200,
+        "y": 850
+    },
+    {
+        "end": 1,
+        "score_diff": 0,
+        "hammer": false,
+        "shot": "Takeout",
+        "reason": "Early end, no hammer \u2013 play aggressively",
+        "x": 200,
+        "y": 850
+    },
+    {
+        "end": 1,
+        "score_diff": 0,
+        "hammer": false,
+        "shot": "Takeout",
+        "reason": "Early end, no hammer \u2013 play aggressively",
+        "x": 200,
+        "y": 850
+    },
+    {
+        "end": 1,
+        "score_diff": 0,
+        "hammer": false,
+        "shot": "Takeout",
+        "reason": "Early end, no hammer \u2013 play aggressively",
+        "x": 200,
+        "y": 850
+    },
+    {
+        "end": 1,
+        "score_diff": 0,
+        "hammer": false,
+        "shot": "Takeout",
+        "reason": "Early end, no hammer \u2013 play aggressively",
+        "x": 200,
+        "y": 850
+    },
+    {
+        "end": 1,
+        "score_diff": 0,
+        "hammer": false,
+        "shot": "Takeout",
+        "reason": "Early end, no hammer \u2013 play aggressively",
+        "x": 200,
+        "y": 850
+    },
+    {
+        "end": 1,
+        "score_diff": 0,
+        "hammer": true,
+        "shot": "Draw or Guard",
+        "reason": "Early end with hammer \u2013 set up scoring",
+        "x": 200,
+        "y": 850
+    }
+]

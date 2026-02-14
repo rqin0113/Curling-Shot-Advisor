@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Curling Shot Advisor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🥌 Curling Shot Advisor</h1>
+            <p class="subtitle">Strategic shot recommendations for your curling game</p>
+        </header>
+
+        <div class="main-content">
+            <div class="arena-section">
+                <canvas id="rink" width="600" height="1200"></canvas>
+            </div>
+
+            <div class="controls-section">
+                <div class="controls-card">
+                    <h2>Place Stones</h2>
+                    <p class="instructions">Click on the rink to place stones</p>
+                    
+                    <div class="color-selector">
+                        <label>
+                            <input type="radio" name="stoneColor" value="blue" checked>
+                            <span class="color-option blue-option">Your Stone (Blue)</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="stoneColor" value="red">
+                            <span class="color-option red-option">Opponent (Red)</span>
+                        </label>
+                    </div>
+
+                    <div class="button-group">
+                        <button id="recommendBtn" class="btn-primary">
+                            <span>🎯</span> Get Recommendation
+                        </button>
+                        <button id="clearBtn" class="btn-secondary">
+                            <span>🔄</span> Clear All Stones
+                        </button>
+                    </div>
+
+                    <div id="result" class="result-box"></div>
+
+                    <div class="stone-count">
+                        <div class="count-item">
+                            <span class="count-label blue-label">Your Stones:</span>
+                            <span id="blueCount" class="count-value">0</span>
+                        </div>
+                        <div class="count-item">
+                            <span class="count-label red-label">Opponent Stones:</span>
+                            <span id="redCount" class="count-value">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3>How to Use</h3>
+                    <ol>
+                        <li>Select stone color (Blue for you, Red for opponent)</li>
+                        <li>Click on the rink to place stones</li>
+                        <li>Click "Get Recommendation" to see the suggested shot</li>
+                        <li>Green stone shows the recommended placement</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('rink');
+        const ctx = canvas.getContext('2d');
+
+        let rocks = [];
+        const stoneRadius = 14;
+
+        const rinkWidth = canvas.width;
+        const rinkHeight = canvas.height;
+
+        const houseX = rinkWidth / 2;
+        const houseY = 150;
+
+        function drawRink() {
+            // Ice background with gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, rinkHeight);
+            gradient.addColorStop(0, '#e8f5f7');
+            gradient.addColorStop(1, '#d4eef2');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, rinkWidth, rinkHeight);
+
+            // House (target circles)
+            const houseColors = [
+                {color: '#c62828', radius: 100},
+                {color: '#ffffff', radius: 70},
+                {color: '#1565c0', radius: 40},
+                {color: '#ffffff', radius: 10}
+            ];
+
+            houseColors.forEach(({color, radius}) => {
+                ctx.beginPath();
+                ctx.arc(houseX, houseY, radius, 0, 2 * Math.PI);
+                ctx.fillStyle = color;
+                ctx.fill();
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            });
+
+            // Hog lines
+            const hogLineY1 = houseY + 300;
+            ctx.strokeStyle = '#d32f2f';
+            ctx.lineWidth = 4;
+            ctx.setLineDash([10, 5]);
+            ctx.beginPath();
+            ctx.moveTo(50, hogLineY1);
+            ctx.lineTo(rinkWidth - 50, hogLineY1);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Center line
+            ctx.strokeStyle = '#90a4ae';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(houseX, 0);
+            ctx.lineTo(houseX, rinkHeight);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Side boundaries
+            ctx.strokeStyle = '#1565c0';
+            ctx.lineWidth = 6;
+            ctx.strokeRect(50, 0, rinkWidth - 100, rinkHeight);
+
+            // Add labels
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('HOUSE', houseX, houseY + 130);
+            ctx.fillText('HOG LINE', houseX, hogLineY1 + 25);
+        }
+
+        function drawRocks() {
+            rocks.forEach(r => {
+                // Stone shadow
+                ctx.beginPath();
+                ctx.arc(r.x + 2, r.y + 2, stoneRadius, 0, 2 * Math.PI);
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.fill();
+
+                // Stone body
+                ctx.beginPath();
+                ctx.arc(r.x, r.y, stoneRadius, 0, 2 * Math.PI);
+                
+                if (r.color === 'blue') {
+                    ctx.fillStyle = '#1976d2';
+                } else if (r.color === 'red') {
+                    ctx.fillStyle = '#d32f2f';
+                } else if (r.color === 'green') {
+                    ctx.fillStyle = '#388e3c';
+                }
+                ctx.fill();
+
+                // Stone highlight
+                const gradient = ctx.createRadialGradient(r.x - 4, r.y - 4, 0, r.x, r.y, stoneRadius);
+                gradient.addColorStop(0, 'rgba(255,255,255,0.5)');
+                gradient.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.fillStyle = gradient;
+                ctx.fill();
+
+                // Stone outline
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Handle (small circle in center)
+                ctx.beginPath();
+                ctx.arc(r.x, r.y, 4, 0, 2 * Math.PI);
+                ctx.fillStyle = '#fff';
+                ctx.fill();
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            });
+        }
+
+        function updateStoneCounts() {
+            const blueCount = rocks.filter(r => r.color === 'blue').length;
+            const redCount = rocks.filter(r => r.color === 'red').length;
+            document.getElementById('blueCount').textContent = blueCount;
+            document.getElementById('redCount').textContent = redCount;
+        }
+
+        function redraw() {
+            drawRink();
+            drawRocks();
+            updateStoneCounts();
+        }
+
+        function isOverlapping(x, y) {
+            return rocks.some(r => {
+                const dx = r.x - x;
+                const dy = r.y - y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                return distance < stoneRadius * 2 + 2;
+            });
+        }
+
+        function isInBounds(x, y) {
+            return x >= 50 + stoneRadius && 
+                   x <= rinkWidth - 50 - stoneRadius && 
+                   y >= stoneRadius && 
+                   y <= rinkHeight - stoneRadius;
+        }
+
+        redraw();
+
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            if (!isInBounds(x, y)) {
+                showMessage("Cannot place stone outside the rink boundaries!", "error");
+                return;
+            }
+
+            if (isOverlapping(x, y)) {
+                showMessage("Cannot place stone here, overlaps another!", "error");
+                return;
+            }
+
+            const selectedColor = document.querySelector('input[name="stoneColor"]:checked').value;
+            
+            // Remove any previous recommendation stones
+            rocks = rocks.filter(r => r.color !== 'green');
+            
+            rocks.push({x, y, color: selectedColor, hammer: selectedColor === "blue"});
+            redraw();
+            
+            // Clear previous result
+            document.getElementById('result').innerHTML = '';
+        });
+
+        function showMessage(message, type = 'info') {
+            const resultBox = document.getElementById('result');
+            resultBox.innerHTML = `<div class="message ${type}">${message}</div>`;
+            
+            if (type === 'error') {
+                setTimeout(() => {
+                    resultBox.innerHTML = '';
+                }, 3000);
+            }
+        }
+
+        document.getElementById('recommendBtn').addEventListener('click', async () => {
+            const nonGreenStones = rocks.filter(r => r.color !== 'green');
+            
+            if (nonGreenStones.length === 0) {
+                showMessage("Please place some stones on the rink first!", "error");
+                return;
+            }
+
+            const stonesData = nonGreenStones.map(r => ({
+                x: r.x,
+                y: r.y,
+                color: r.color
+            }));
+
+            try {
+                showMessage("Analyzing position...", "info");
+                
+                const response = await fetch('http://127.0.0.1:8000/recommend-shot', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        stones: stonesData
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Server error');
+                }
+
+                const data = await response.json();
+
+                // Remove previous recommendation
+                rocks = rocks.filter(r => r.color !== 'green');
+
+                // Add new recommendation
+                rocks.push({x: data.x, y: data.y, color: "green"});
+                redraw();
+
+                document.getElementById('result').innerHTML = `
+                    <div class="recommendation">
+                        <div class="rec-title">Recommended Shot</div>
+                        <div class="rec-shot">${data.recommended_shot}</div>
+                        <div class="rec-note">Green stone shows suggested placement</div>
+                    </div>
+                `;
+            } catch (error) {
+                showMessage("Error: Make sure the backend server is running (python main.py)", "error");
+                console.error('Error:', error);
+            }
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            rocks = [];
+            redraw();
+            document.getElementById('result').innerHTML = '';
+        });
+    </script>
+</body>
+</html>
