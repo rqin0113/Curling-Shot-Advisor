@@ -2,6 +2,10 @@
 
 An interactive web application that provides strategic shot recommendations for curling games.
 
+![Curling Shot Advisor Screenshot](curling-shot-advisor-demo.png)
+
+[View Live Demo](https://rqin0113.github.io/Curling-Shot-Advisor/)
+
 ## ✨ Improvements Made
 
 ### Visual Design
