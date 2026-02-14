@@ -2,11 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+<<<<<<< HEAD
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+=======
+>>>>>>> ac5a47b41a17a2675599b4c8fb457bc9c19de447
     <title>Curling Shot Advisor</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<<<<<<< HEAD
     <div class="container">
         <header>
             <h1>🥌 Curling Shot Advisor</h1>
@@ -68,22 +72,45 @@
                 </div>
             </div>
         </div>
+=======
+    <h1>Curling Shot Advisor</h1>
+
+    <div class="arena-container">
+        <canvas id="rink" width="600" height="1200"></canvas>
+    </div>
+
+    <div class="controls">
+        <h2>Place Stones</h2>
+        <p>Click on the rink to place stones. Blue = you, Red = opponent.</p>
+        <button id="recommendBtn">Get Recommendation</button>
+        <h3 id="result"></h3>
+>>>>>>> ac5a47b41a17a2675599b4c8fb457bc9c19de447
     </div>
 
     <script>
         const canvas = document.getElementById('rink');
         const ctx = canvas.getContext('2d');
 
+<<<<<<< HEAD
         let rocks = [];
         const stoneRadius = 14;
+=======
+        let rocks = []; // {x, y, color, hammer}
+        const stoneRadius = 14; // bigger stones
+>>>>>>> ac5a47b41a17a2675599b4c8fb457bc9c19de447
 
         const rinkWidth = canvas.width;
         const rinkHeight = canvas.height;
 
+<<<<<<< HEAD
+=======
+        // House at top
+>>>>>>> ac5a47b41a17a2675599b4c8fb457bc9c19de447
         const houseX = rinkWidth / 2;
         const houseY = 150;
 
         function drawRink() {
+<<<<<<< HEAD
             // Ice background with gradient
             const gradient = ctx.createLinearGradient(0, 0, 0, rinkHeight);
             gradient.addColorStop(0, '#e8f5f7');
@@ -114,20 +141,55 @@
             ctx.strokeStyle = '#d32f2f';
             ctx.lineWidth = 4;
             ctx.setLineDash([10, 5]);
+=======
+            // Ice background
+            ctx.fillStyle = "#e0f7fa";
+            ctx.fillRect(0, 0, rinkWidth, rinkHeight);
+
+            // House (big)
+            const houseColors = ["red", "white", "blue"];
+            const houseRadii = [100, 70, 40]; // much larger
+
+            for (let i = 0; i < houseColors.length; i++) {
+                ctx.beginPath();
+                ctx.arc(houseX, houseY, houseRadii[i], 0, 2*Math.PI);
+                ctx.fillStyle = houseColors[i];
+                ctx.fill();
+            }
+
+            // Hog lines
+            const hogLineY1 = houseY + 300;
+            const hogLineY2 = rinkHeight - 300;
+            ctx.strokeStyle = "#ff6600";
+            ctx.lineWidth = 3;
+>>>>>>> ac5a47b41a17a2675599b4c8fb457bc9c19de447
             ctx.beginPath();
             ctx.moveTo(50, hogLineY1);
             ctx.lineTo(rinkWidth - 50, hogLineY1);
             ctx.stroke();
+<<<<<<< HEAD
             ctx.setLineDash([]);
 
             // Center line
             ctx.strokeStyle = '#90a4ae';
             ctx.lineWidth = 2;
             ctx.setLineDash([5, 5]);
+=======
+
+            ctx.beginPath();
+            ctx.moveTo(50, hogLineY2);
+            ctx.lineTo(rinkWidth - 50, hogLineY2);
+            ctx.stroke();
+
+            // Center line
+            ctx.strokeStyle = "#cccccc";
+            ctx.lineWidth = 2;
+>>>>>>> ac5a47b41a17a2675599b4c8fb457bc9c19de447
             ctx.beginPath();
             ctx.moveTo(houseX, 0);
             ctx.lineTo(houseX, rinkHeight);
             ctx.stroke();
+<<<<<<< HEAD
             ctx.setLineDash([]);
 
             // Side boundaries
@@ -141,10 +203,18 @@
             ctx.textAlign = 'center';
             ctx.fillText('HOUSE', houseX, houseY + 130);
             ctx.fillText('HOG LINE', houseX, hogLineY1 + 25);
+=======
+
+            // Side boundaries
+            ctx.strokeStyle = "#004d99";
+            ctx.lineWidth = 4;
+            ctx.strokeRect(50, 0, rinkWidth - 100, rinkHeight);
+>>>>>>> ac5a47b41a17a2675599b4c8fb457bc9c19de447
         }
 
         function drawRocks() {
             rocks.forEach(r => {
+<<<<<<< HEAD
                 // Stone shadow
                 ctx.beginPath();
                 ctx.arc(r.x + 2, r.y + 2, stoneRadius, 0, 2 * Math.PI);
@@ -183,10 +253,19 @@
                 ctx.fill();
                 ctx.strokeStyle = '#333';
                 ctx.lineWidth = 1;
+=======
+                ctx.beginPath();
+                ctx.arc(r.x, r.y, stoneRadius, 0, 2*Math.PI);
+                ctx.fillStyle = r.color;
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "#333";
+>>>>>>> ac5a47b41a17a2675599b4c8fb457bc9c19de447
                 ctx.stroke();
             });
         }
 
+<<<<<<< HEAD
         function updateStoneCounts() {
             const blueCount = rocks.filter(r => r.color === 'blue').length;
             const redCount = rocks.filter(r => r.color === 'red').length;
@@ -214,15 +293,35 @@
                    x <= rinkWidth - 50 - stoneRadius && 
                    y >= stoneRadius && 
                    y <= rinkHeight - stoneRadius;
+=======
+        function redraw() {
+            drawRink();
+            drawRocks();
+>>>>>>> ac5a47b41a17a2675599b4c8fb457bc9c19de447
         }
 
         redraw();
 
+<<<<<<< HEAD
+=======
+        // Function to check if new stone overlaps existing ones
+        function isOverlapping(x, y) {
+            return rocks.some(r => {
+                const dx = r.x - x;
+                const dy = r.y - y;
+                const distance = Math.sqrt(dx*dx + dy*dy);
+                return distance < stoneRadius * 2 + 2; // buffer
+            });
+        }
+
+        // Place stone on click
+>>>>>>> ac5a47b41a17a2675599b4c8fb457bc9c19de447
         canvas.addEventListener('click', (e) => {
             const rect = canvas.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
 
+<<<<<<< HEAD
             if (!isInBounds(x, y)) {
                 showMessage("Cannot place stone outside the rink boundaries!", "error");
                 return;
@@ -315,3 +414,44 @@
     </script>
 </body>
 </html>
+=======
+            if (isOverlapping(x, y)) {
+                alert("Cannot place stone here, overlaps another!");
+                return;
+            }
+
+            const color = prompt("Stone color? (blue = you, red = opponent)") === "red" ? "red" : "blue";
+            rocks.push({x, y, color, hammer: color==="blue"});
+            redraw();
+        });
+
+        // Recommend shot
+        document.getElementById('recommendBtn').addEventListener('click', async () => {
+    // Prepare data for backend
+    const stonesData = rocks.map(r => ({
+        x: r.x,
+        y: r.y,
+        color: r.color
+    }));
+
+    const response = await fetch('http://127.0.0.1:8000/recommend-shot', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            stones: stonesData
+        })
+    });
+
+    const data = await response.json();
+
+    // Place recommended green stone
+    rocks.push({x: data.x, y: data.y, color: "green"});
+    redraw();
+
+    // Show only the recommendation type
+    document.getElementById('result').innerText = `Recommended Shot: ${data.recommended_shot}`;
+});
+    </script>
+</body>
+</html>
+>>>>>>> ac5a47b41a17a2675599b4c8fb457bc9c19de447
