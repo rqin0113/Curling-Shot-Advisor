@@ -28,28 +28,6 @@ Built because I love both coding and curling, and wanted to make strategy more a
 3. Frontend visualizes the recommended shot placement
 4. Users can reset and try different scenarios
 
-## 💻 Setup & Installation
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/curling-shot-advisor.git
-cd curling-shot-advisor
-
-# Install backend dependencies
-pip install fastapi uvicorn
-
-# Run the server
-uvicorn main:app --reload
-
-# Open index.html in your browser
-```
-
-## 🧠 What I Learned
-
-- Full-stack development workflow from backend API to interactive frontend
-- Canvas coordinate mapping and collision detection algorithms
-- Geometric calculations for shot scoring and recommendation logic
-- RESTful API design with FastAPI
-
 ## 🤝 Contributing
 
 Feel free to open issues or submit pull requests if you have ideas for improvements!
