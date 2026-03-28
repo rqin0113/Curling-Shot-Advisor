@@ -2,7 +2,6 @@
 
 An interactive web application that provides strategic shot recommendations for curling games with full game state tracking and replay functionality.
 
-![Curling Shot Advisor Screenshot]
 ![Demo 1](demo-pics/demo1.png)
 ![Demo 2](demo-pics/demo2.png)
 
