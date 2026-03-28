@@ -21,6 +21,52 @@
             </div>
 
             <div class="controls-section">
+                <div class="game-state-card">
+                    <h2>📊 Game State</h2>
+                    
+                    <div class="score-display">
+                        <div class="team-score">
+                            <span class="team-name blue-name">Blue (You)</span>
+                            <span class="score" id="blueScore">0</span>
+                        </div>
+                        <div class="separator">-</div>
+                        <div class="team-score">
+                            <span class="team-name red-name">Red</span>
+                            <span class="score" id="redScore">0</span>
+                        </div>
+                    </div>
+
+                    <div class="game-info">
+                        <div class="info-row">
+                            <label>Current End:</label>
+                            <input type="number" id="currentEnd" value="1" min="1" max="10">
+                        </div>
+                        <div class="info-row">
+                            <label>Hammer:</label>
+                            <select id="hammerSelect">
+                                <option value="true">Blue (You)</option>
+                                <option value="false">Red</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button id="newGameBtn" class="btn-secondary" style="width: 100%;">
+                            <span>🎮</span> New Game
+                        </button>
+                        <button id="endEndBtn" class="btn-secondary" style="width: 100%;">
+                            <span>✅</span> Record End & Advance
+                        </button>
+                    </div>
+
+                    <div class="end-points">
+                        <label>Points this end:</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="number" id="bluePoints" placeholder="Blue" min="0" max="8" style="width: 50%;">
+                            <input type="number" id="redPoints" placeholder="Red" min="0" max="8" style="width: 50%;">
+                        </div>
+                    </div>
+                </div>
                 <div class="controls-card">
                     <h2>Place Stones</h2>
                     <p class="instructions">Click on the rink to place stones</p>
@@ -68,6 +114,16 @@
                         <li>Green stone shows the recommended placement</li>
                     </ol>
                 </div>
+
+                <div class="replay-card">
+                    <h3>🎬 Game Replay</h3>
+                    <div class="replay-controls">
+                        <button id="prevMoveBtn" class="btn-small">← Previous</button>
+                        <span id="moveCounter">No moves yet</span>
+                        <button id="nextMoveBtn" class="btn-small">Next →</button>
+                    </div>
+                    <div id="replayInfo" class="replay-info"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -77,6 +133,13 @@
         const ctx = canvas.getContext('2d');
 
         let rocks = [];
+        let currentEnd = 1;
+        let blueScore = 0;
+        let redScore = 0;
+        let hasHammer = true;
+        let replayIndex = -1;
+        let gameHistory = [];
+
         const stoneRadius = 14;
 
         const rinkWidth = canvas.width;
@@ -84,6 +147,154 @@
 
         const houseX = rinkWidth / 2;
         const houseY = 150;
+
+        // Update display when scores or end changes
+        function updateGameDisplay() {
+            document.getElementById('blueScore').textContent = blueScore;
+            document.getElementById('redScore').textContent = redScore;
+            document.getElementById('currentEnd').value = currentEnd;
+            document.getElementById('hammerSelect').value = hasHammer.toString();
+        }
+
+        // Create new game
+        document.getElementById('newGameBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/game/new', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                
+                currentEnd = 1;
+                blueScore = 0;
+                redScore = 0;
+                hasHammer = true;
+                rocks = [];
+                gameHistory = [];
+                replayIndex = -1;
+                
+                updateGameDisplay();
+                redraw();
+                document.getElementById('result').innerHTML = '<div class="message info">🎮 New game started!</div>';
+                setTimeout(() => { document.getElementById('result').innerHTML = ''; }, 2000);
+            } catch (error) {
+                showMessage("Error starting new game: " + error.message, "error");
+            }
+        });
+
+        // Update game state when inputs change
+        document.getElementById('currentEnd').addEventListener('change', (e) => {
+            currentEnd = parseInt(e.target.value) || 1;
+            updateGameState();
+        });
+
+        document.getElementById('hammerSelect').addEventListener('change', (e) => {
+            hasHammer = e.target.value === 'true';
+            updateGameState();
+        });
+
+        // End current end and advance
+        document.getElementById('endEndBtn').addEventListener('click', async () => {
+            const bluePoints = parseInt(document.getElementById('bluePoints').value) || 0;
+            const redPoints = parseInt(document.getElementById('redPoints').value) || 0;
+            
+            try {
+                const response = await fetch('http://127.0.0.1:8000/game/end-end?blue_points=' + bluePoints + '&red_points=' + redPoints, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                
+                blueScore += bluePoints;
+                redScore += redPoints;
+                currentEnd = data.game.current_end;
+                hasHammer = data.game.has_hammer;
+                
+                document.getElementById('bluePoints').value = '';
+                document.getElementById('redPoints').value = '';
+                
+                updateGameDisplay();
+                rocks = [];
+                document.getElementById('result').innerHTML = '';
+                redraw();
+                
+                showMessage(`✅ End ${currentEnd - 1} recorded! Blue: ${bluePoints}, Red: ${redPoints}`, 'info');
+            } catch (error) {
+                showMessage("Error recording end: " + error.message, "error");
+            }
+        });
+
+        // Update game state on backend
+        async function updateGameState() {
+            try {
+                await fetch('http://127.0.0.1:8000/game/update-state', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        end: currentEnd,
+                        blue_score: blueScore,
+                        red_score: redScore,
+                        has_hammer: hasHammer
+                    })
+                });
+            } catch (error) {
+                console.error('Error updating game state:', error);
+            }
+        }
+
+        // Replay controls
+        document.getElementById('prevMoveBtn').addEventListener('click', async () => {
+            if (replayIndex > 0) {
+                replayIndex--;
+                displayReplayMove();
+            }
+        });
+
+        document.getElementById('nextMoveBtn').addEventListener('click', async () => {
+            if (gameHistory.length > 0 && replayIndex < gameHistory.length - 1) {
+                replayIndex++;
+                displayReplayMove();
+            }
+        });
+
+        async function loadGameHistory() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/game/history');
+                const data = await response.json();
+                gameHistory = data.moves;
+                updateReplayCounter();
+            } catch (error) {
+                console.error('Error loading history:', error);
+            }
+        }
+
+        function displayReplayMove() {
+            if (replayIndex >= 0 && replayIndex < gameHistory.length) {
+                const move = gameHistory[replayIndex];
+                const replayInfo = document.getElementById('replayInfo');
+                
+                replayInfo.innerHTML = `
+                    <div class="move-details">
+                        <div><strong>End:</strong> ${move.end}</div>
+                        <div><strong>Shot:</strong> ${move.recommended_shot}</div>
+                        <div><strong>Score:</strong> Blue ${move.blue_score} - Red ${move.red_score}</div>
+                        <div><strong>Position:</strong> (${Math.round(move.position.x)}, ${Math.round(move.position.y)})</div>
+                        <div><strong>Time:</strong> ${new Date(move.timestamp).toLocaleTimeString()}</div>
+                    </div>
+                `;
+            }
+            updateReplayCounter();
+        }
+
+        function updateReplayCounter() {
+            if (gameHistory.length === 0) {
+                document.getElementById('moveCounter').textContent = 'No moves yet';
+            } else if (replayIndex === -1) {
+                document.getElementById('moveCounter').textContent = `${gameHistory.length} moves recorded`;
+            } else {
+                document.getElementById('moveCounter').textContent = `Move ${replayIndex + 1} of ${gameHistory.length}`;
+            }
+        }
 
         function drawRink() {
             // Ice background with gradient
@@ -279,7 +490,11 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        stones: stonesData
+                        stones: stonesData,
+                        current_end: currentEnd,
+                        blue_score: blueScore,
+                        red_score: redScore,
+                        has_hammer: hasHammer
                     })
                 });
 
@@ -296,11 +511,16 @@
                 rocks.push({ x: data.x, y: data.y, color: "green" });
                 redraw();
 
+                // Load updated history
+                await loadGameHistory();
+                updateReplayCounter();
+
                 document.getElementById('result').innerHTML = `
                     <div class="recommendation">
                         <div class="rec-title">Recommended Shot</div>
                         <div class="rec-shot">${data.recommended_shot}</div>
                         <div class="rec-note">Green stone shows suggested placement</div>
+                        <div class="rec-source">Strategy: ${data.strategy_source}</div>
                     </div>
                 `;
             } catch (error) {
